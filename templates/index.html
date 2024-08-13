@@ -10,7 +10,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
         }
@@ -43,32 +43,32 @@
         input[type="submit"]:hover {
             background-color: #45a049;
         }
-        .flash-messages {
-            margin-bottom: 1rem;
-            color: #721c24;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px;
-            padding: 0.5rem;
-        }
         label {
             margin-bottom: 0.25rem;
+        }
+        #result-area, #log-area {
+            margin-top: 1rem;
+            border: 1px solid #ccc;
+            padding: 1rem;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #result-area {
+            background-color: #e8f5e9;
+        }
+        #log-area {
+            background-color: #ffebee;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>CSV Transformer</h1>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="flash-messages">
-            {% for message in messages %}
-              {{ message }}
-            {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-        <form method="post" enctype="multipart/form-data">
+        <form id="upload-form">
             <label for="file">Select CSV file:</label>
             <input type="file" name="file" id="file" accept=".csv" required>
             
@@ -89,6 +89,64 @@
             
             <input type="submit" value="Transform CSV">
         </form>
+        <div id="result-area" class="hidden"></div>
+        <div id="log-area" class="hidden"></div>
     </div>
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                var resultArea = document.getElementById('result-area');
+                var logArea = document.getElementById('log-area');
+                
+                resultArea.innerHTML = '';
+                logArea.innerHTML = '';
+                
+                if (data.error) {
+                    logArea.innerHTML = '<h3>Error:</h3><p>' + data.error + '</p>';
+                    logArea.classList.remove('hidden');
+                    resultArea.classList.add('hidden');
+                } else {
+                    if (data.warnings && data.warnings.length > 0) {
+                        resultArea.innerHTML = '<h3>Completed. Check possible warnings:</h3>';
+                        data.warnings.forEach(warning => {
+                            resultArea.innerHTML += '<p>' + warning + '</p>';
+                        });
+                    } else {
+                        resultArea.innerHTML = '<h3>Completed with no errors!</h3>';
+                    }
+                    resultArea.classList.remove('hidden');
+                    
+                    if (data.logs && data.logs.some(log => log.includes('ERROR'))) {
+                        logArea.innerHTML = '<h3>Logs:</h3>';
+                        data.logs.forEach(log => {
+                            if (log.includes('ERROR')) {
+                                logArea.innerHTML += '<p>' + log + '</p>';
+                            }
+                        });
+                        logArea.classList.remove('hidden');
+                    } else {
+                        logArea.classList.add('hidden');
+                    }
+                }
+                
+                if (data.download_url) {
+                    window.location.href = data.download_url;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('log-area').innerHTML = '<h3>Error:</h3><p>An error occurred. Please try again.</p>';
+                document.getElementById('log-area').classList.remove('hidden');
+            });
+        });
+    </script>
 </body>
 </html>
