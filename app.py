@@ -15,7 +15,12 @@ def transform_csv(input_csv, config):
     if input_csv.startswith('\ufeff'):
         input_csv = input_csv[1:]
 
-    reader = csv.DictReader(StringIO(input_csv))
+    # Detect the delimiter
+    sniffer = csv.Sniffer()
+    dialect = sniffer.sniff(input_csv[:1024])
+    app.logger.info(f"Detected delimiter: {dialect.delimiter}")
+
+    reader = csv.DictReader(StringIO(input_csv), dialect=dialect)
     input_rows = list(reader)
     
     if not input_rows:
