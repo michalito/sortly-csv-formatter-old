@@ -3,6 +3,7 @@ import csv
 from io import StringIO
 import os
 import logging
+import re
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -62,7 +63,7 @@ def transform_csv(input_csv, config):
                 'Quantity': item['Stock'],
                 'Unit': 'Unit',
                 'Min Level': config['min_level'],
-                'Price': main_item['Price'].replace('€ ', ''),
+                'Price': process_price(main_item['Price']),
                 'Notes': item['Status'],
                 'Tags': config['tags'],
                 'Primary Folder': config['primary_folder'],
@@ -85,6 +86,17 @@ def transform_csv(input_csv, config):
     writer.writerows(output_rows)
 
     return output.getvalue()
+
+def process_price(price_str):
+    # Remove any non-digit characters except for the decimal point
+    price_str = re.sub(r'[^\d.]', '', price_str)
+    try:
+        # Convert to float and format to 2 decimal places
+        return '{:.2f}'.format(float(price_str))
+    except ValueError:
+        # If conversion fails, return '0.00'
+        app.logger.warning(f"Invalid price value: {price_str}. Defaulting to 0.00")
+        return '0.00'
 
 def extract_size(name):
     if 'XSmall' in name:
