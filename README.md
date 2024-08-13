@@ -21,8 +21,8 @@ Either clone the repository or download the source code to your local machine.
 
 Using Git:
 ```
-git clone <repository-url>
-cd <repository-folder>
+git clone https://github.com/michalito/sortly-csv-formatter.git
+cd sortly-csv-formatter
 ```
 
 ### 2. Build the Docker Image
@@ -31,7 +31,7 @@ Open a terminal (macOS) or Command Prompt/PowerShell (Windows) and navigate to t
 
 Build the Docker image:
 ```
-docker build -t sortly-csv-transformer .
+docker build -t sortly-csv-formatter .
 ```
 
 ### 3. Run the Docker Container
@@ -39,7 +39,7 @@ docker build -t sortly-csv-transformer .
 After successfully building the image, run the Docker container:
 
 ```
-docker run -p 5000:5000 sortly-csv-transformer
+docker run -p 5000:5000 sortly-csv-formatter
 ```
 
 ### 4. Access the Application
@@ -49,7 +49,7 @@ Open a web browser and go to:
 http://localhost:5000
 ```
 
-You should now see the CSV Transformer application interface.
+You should now see the CSV Formatter application interface.
 
 ## Usage
 
